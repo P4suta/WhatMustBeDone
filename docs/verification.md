@@ -13,7 +13,7 @@ Its success message establishes only native checks on the executing platform.
 A native result never replaces current source-bound proof evidence or dependency and secret checks.
 
 The supported initial target is Apple Silicon macOS.
-Rust 1.99.0 and the versions checked by the verification task define the toolchain.
+Rust 1.99.1 and the versions checked by the verification task define the toolchain.
 Kani 0.68.0 uses its bundled compiler and model checker.
 Proof domains use fixed input bounds and explicit harness unwinding rather than elapsed-time limits.
 The proof and negative-control commands impose no wall-clock verdict limit.
@@ -23,7 +23,7 @@ An external interruption leaves verification inconclusive and supplies no passin
 
 The [manual verification workflow](../.github/workflows/verification.yml) documents the supported hosted environment: the Apple Silicon `macos-26` runner.
 It calls the same complete `just check` command and adds no scheduled or automatic hosted runs.
-It uses immutable action revisions, mise 2026.10.11, project-pinned Rust and just, locked verification-tool installs, and the public advisory commit.
+It uses immutable action revisions, mise 2026.10.15, project-pinned Rust and just, locked verification-tool installs, and the public advisory commit.
 Kani and Gitleaks archives must match the [checked-in checksums](../verification/tool-assets.sha256) before extraction or setup.
 The Kani bundle supplies its own fixed nightly compiler and model checker.
 The source-bound evidence includes the workflow and checksum manifest.
