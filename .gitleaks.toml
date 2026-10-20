@@ -1,0 +1,6 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Generated build outputs"
+paths = ['''(^|/)target/''', '''(^|/)\.git/''']

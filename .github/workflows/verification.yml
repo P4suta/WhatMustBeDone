@@ -1,0 +1,46 @@
+name: Verification
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verification-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: jdx/mise-action@fc42bcc7ddbf51124c30f95a877a0c5168a3bfde
+        with:
+          version: 2026.10.11
+          cache: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: rustsec/advisory-db
+          ref: 999ec89d5d3f10f20be14750ec8c2d8b44e0ac9b
+          path: target/verification/advisory-db
+          persist-credentials: false
+      - name: Fetch locked dependencies
+        run: mise x -- cargo fetch --locked
+      - name: Install pinned verification tools
+        run: |
+          mise x -- cargo install --locked --version 0.68.0 kani-verifier
+          mise x -- cargo install --locked --version 0.22.2 cargo-audit
+      - name: Download and verify tool archives
+        working-directory: ${{ runner.temp }}
+        run: |
+          curl --fail --location --proto '=https' --proto-redir '=https' --tlsv1.2 --output kani-0.68.0-aarch64-apple-darwin.tar.gz https://github.com/model-checking/kani/releases/download/kani-0.68.0/kani-0.68.0-aarch64-apple-darwin.tar.gz
+          curl --fail --location --proto '=https' --proto-redir '=https' --tlsv1.2 --output gitleaks_8.30.1_darwin_arm64.tar.gz https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_darwin_arm64.tar.gz
+          shasum -a 256 --check --strict "$GITHUB_WORKSPACE/verification/tool-assets.sha256"
+          tar -xzf gitleaks_8.30.1_darwin_arm64.tar.gz -C "$HOME/.cargo/bin" gitleaks
+      - name: Set up the verified Kani bundle
+        run: mise x -- cargo kani setup --use-local-bundle "$RUNNER_TEMP/kani-0.68.0-aarch64-apple-darwin.tar.gz"
+      - name: Verify the complete contract
+        run: mise x -- just check --advisory-repo target/verification/advisory-db

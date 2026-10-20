@@ -1,0 +1,4 @@
+/target/
+/.verification/
+*.redb
+/kani-list.json
