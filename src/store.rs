@@ -3,6 +3,7 @@ use crate::api::{
     text,
 };
 use crate::error::{Code, Error, Result};
+use redb::backends::FileBackend;
 use redb::{
     Database, DatabaseError, Durability, Key, ReadOnlyDatabase, ReadTransaction, ReadableDatabase,
     ReadableTable, ReadableTableMetadata, TableDefinition, TableHandle, Value, WriteTransaction,
@@ -364,7 +365,10 @@ fn prepare_archive(source: &ReadTransaction, destination: &Path) -> Result<Prepa
         .tempfile_in(parent)
         .map_err(Error::storage)?;
     let database = Database::builder()
-        .create_file(file.as_file().try_clone().map_err(Error::storage)?)
+        .create_with_backend(
+            FileBackend::new(file.as_file().try_clone().map_err(Error::storage)?)
+                .map_err(Error::storage)?,
+        )
         .map_err(Error::storage)?;
     let mut transaction = database.begin_write().map_err(Error::storage)?;
     transaction
